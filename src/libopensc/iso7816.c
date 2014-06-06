@@ -521,7 +521,14 @@ iso7816_select_file(struct sc_card *card, const struct sc_path *in_path, struct 
 		}
 		if ((size_t)apdu.resp[1] + 2 <= apdu.resplen)
 			card->ops->process_fci(card, file, apdu.resp+2, apdu.resp[1]);
-		*file_out = file;
+        /*
+         * Some functions call with NULL argument, avoid segfaulting
+         */
+        if (file_out != NULL) {
+    		*file_out = file;
+        } else {
+            sc_file_free(file);
+        }
 		break;
 	case 0x00: /* proprietary coding */
 		LOG_FUNC_RETURN(ctx, SC_ERROR_UNKNOWN_DATA_RECEIVED);
